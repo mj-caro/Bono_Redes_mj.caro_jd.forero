@@ -30,14 +30,14 @@ open(prefs, "w").write("\n".join(lines) + "\n")
 PY
 
 echo "──────────────────────────────────────────────────────────────"
-echo " 1) Capturando el puerto 9010 en lo0  →  $PCAP"
+echo " 1) Capturando el puerto 9010 en en0  →  $PCAP"
 echo " 2) Se abrirá Chrome (perfil desechable, cert aceptado, claves TLS)"
 echo " 3) USA LA BANCA (login, saldo, enviar…). Cuando termines: Ctrl+C aquí."
 echo " 4) Se abrirá la captura YA DESCIFRADA en Wireshark (filtro websocket)."
 echo "──────────────────────────────────────────────────────────────"
 
 # 1) Capturar PRIMERO (el handshake queda dentro)
-"$TSHARK" -i lo0 -f "tcp port 9010" -w "$PCAP" -q >/dev/null 2>&1 &
+"$TSHARK" -i en0 -f "tcp port 9010" -w "$PCAP" -q >/dev/null 2>&1 &
 TS=$!
 sleep 2
 
