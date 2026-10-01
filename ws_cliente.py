@@ -1,51 +1,58 @@
 # Importamos ssl porque la conexión con el servidor usa TLS.
 import ssl
 
-# Importamos websocket para crear y manejar la conexión WebSocket.
-import websocket
+# Importamos la versión síncrona de websockets para manejar la conexión.
+from websockets.sync.client import connect
 
 
-# Creamos una clase para agrupar las funciones de conexión,envío, recepción y cierre.
+# Creamos una clase para manejar la conexión con el servidor.
 class WSCliente:
 
-    # Esta función se ejecuta automáticamente al crear un objeto WSCliente. "self" representa el objeto y "url" es la dirección del servidor.
+    # Esta función se ejecuta cuando creamos un objeto WSCliente.
     def __init__(self, url: str):
 
-        # Creamos la conexión WebSocket con el servidor. create_connection realiza el handshake de WebSocket.
-        self.ws = websocket.create_connection(
+        # Creamos un contexto TLS.
+        contexto = ssl.create_default_context()
+
+        # En este laboratorio no verificamos el certificado.
+        contexto.check_hostname = False
+        contexto.verify_mode = ssl.CERT_NONE
+
+        # Creamos la conexión WebSocket.
+        self.ws = connect(
             url,
 
-            # Configuramos las opciones de TLS.
-            sslopt={
-                # En este laboratorio no verificamos el certificado.
-                "cert_reqs": ssl.CERT_NONE
-            }
+            # Usamos el mismo origen que aparece en la captura del navegador.
+            origin="https://alpespay.datoid.co",
+
+            # Permitimos la compresión WebSocket que usa el navegador.
+            compression="deflate",
+
+            # Usamos nuestro contexto TLS.
+            ssl_context=contexto
         )
 
-    # Esta función envía datos al servidor.Los datos son bytes porque AlpesPay utiliza mensajes binarios.
+    # Esta función envía datos binarios al servidor.
     def send_bytes(self, data: bytes):
 
-        # Enviamos los bytes como un mensaje WebSocket binario.
-        self.ws.send(
-            data,
-            opcode=websocket.ABNF.OPCODE_BINARY
-        )
+        # Enviamos los bytes como mensaje binario.
+        self.ws.send(data)
 
     # Esta función recibe un mensaje del servidor.
     def recv_bytes(self) -> bytes:
 
-        # Esperamos y recibimos el siguiente mensaje.
+        # Esperamos la respuesta del servidor.
         data = self.ws.recv()
 
-        # Si el servidor devuelve texto, lo convertimos a bytes.
+        # Si llega como texto, lo convertimos a bytes.
         if isinstance(data, str):
             return data.encode()
 
         # Si ya son bytes, los devolvemos directamente.
         return data
 
-    # Esta función cierra la conexión con el servidor.
+    # Esta función cierra la conexión.
     def close(self):
 
-        # Cerramos la conexión WebSocket.
+        # Cerramos el WebSocket.
         self.ws.close()
